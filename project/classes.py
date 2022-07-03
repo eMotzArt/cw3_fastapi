@@ -11,6 +11,12 @@ class Repository:
             all_posts = json.load(file)
         return all_posts
 
+    def get_post_by_id(self, searched_post_id):
+        all_posts = self.get_all_posts()
+        for post in all_posts:
+            if post['pk'] == searched_post_id:
+                return post
+
     def add_like(self, post_id):
         ...
 
@@ -24,4 +30,5 @@ class Repository:
 
 x = Repository()
 y = Repository().get_all_posts()
+z = Repository().get_post_by_id(7)
 pass
