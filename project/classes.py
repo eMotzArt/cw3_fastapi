@@ -7,10 +7,11 @@ from project.paths import DATA_PATH_ABS
 
 class Repository:
     def __init__(self):
-        self.source_file = os.path.join(DATA_PATH_ABS, 'data.json')
+        self.posts_file = os.path.join(DATA_PATH_ABS, 'data.json')
+        self.bookmarks_file = os.path.join(DATA_PATH_ABS, 'bookmarks.json')
 
     def get_all_posts(self):
-        with open(self.source_file) as file:
+        with open(self.posts_file) as file:
             all_posts = json.load(file)
         return all_posts
 
@@ -28,6 +29,11 @@ class Repository:
 
     def add_comment(self, post_id, name, comment):
         ...
+
+    def get_bookmarsk_count(self):
+        with open(self.bookmarks_file) as file:
+            all_bookmarks = json.load(file)
+        return len(all_bookmarks)
 
 
 class UserIDentifier:
