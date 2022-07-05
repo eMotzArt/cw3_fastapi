@@ -13,11 +13,72 @@ def page_index(request: Request):
     all_posts = Repository().get_all_posts()
     bookmarks_count = Repository().get_bookmarsk_count()
 
-    return templates.TemplateResponse("index.html", {"request": request,
-                                                     'bookmark_count': bookmarks_count,
-                                                     'posts': all_posts,
-                                                     'views_counter': 666
-                                                     })
+    data_for_template = {
+        'request': request,
+        'bookmarks_count': bookmarks_count,
+        'posts': all_posts
+    }
+    return templates.TemplateResponse("index.html", data_for_template)
+
+@main_router.get("/post/{post_id}")
+def page_post_by_id(request: Request, post_id: int):
+    post_by_id = Repository().get_post_by_id(post_id)
+    comments_by_post_id = Repository().get_comments_by_post_id(post_id)
+
+    data_for_template = {
+        "request": request,
+        'comments': comments_by_post_id,
+        'post': post_by_id
+    }
+
+    return templates.TemplateResponse("post.html", data_for_template)
+
+@main_router.get("/search/")
+def page_search(request: Request, search_line: str):
+    posts_by_search_line = Repository().get_post_by_search_line(search_line)
+
+    data_for_template = {
+        "request": request,
+        'posts': posts_by_search_line
+    }
+
+    return templates.TemplateResponse("search.html", data_for_template)
+
+@main_router.get("/users/{user_name}")
+def page_posts_by_user(request: Request, user_name: str):
+    posts_by_user_name = Repository().get_post_by_user_name(user_name)
+
+    data_for_template = {
+        "request": request,
+        'posts': posts_by_user_name
+    }
+    return templates.TemplateResponse("user-feed.html", data_for_template)
+
+
+@main_router.get("/api/posts")
+def page_index_all_json(request: Request):
+    all_posts = Repository().get_all_posts()
+    return all_posts
+
+@main_router.get("/api/posts/{post_id}")
+def page_index_all_json(request: Request, post_id: int):
+    post_by_id = Repository().get_post_by_id(post_id)
+    return post_by_id
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 @main_router.get("/cookie-and-object/")
 @main_router.post("/cookie-and-object/")

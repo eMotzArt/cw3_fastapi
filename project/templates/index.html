@@ -21,6 +21,11 @@
         <span class="header__bookmark-counter">{{ bookmark_count }}</span>
       </a>
     </div>
+    <div class="search">
+      <form action="{{ url_for('page_search') }}" class="search__form">
+        <input type="search" class="search__input" name="search_line">
+      </form>
+    </div>
   </header>
   <main class="container">
     <section class="items">
@@ -28,27 +33,27 @@
       {% for post in posts %}
       <div class="items__item item">
         <div class="item__top">
-          <a href="/user-feed.html" class="item__head">
+          <a href="{{ url_for('page_posts_by_user', user_name=post['poster_name']) }}" class="item__head">
             <div class="item__ava-wrap">
               <img src="{{ post['poster_avatar'] }}" alt="" class="item__ava" width="47">
             </div>
             <span class="item__username">{{ post['poster_name'] }}</span>
           </a>
         </div>
-        <a href="/post.html" class="item__post-link">
+        <a href="{{ url_for('page_post_by_id', post_id=post['pk']) }}" class="item__post-link">
           <img src="{{ post['pic'] }}" alt="" width="348" class="item__post-img">
         </a>
-        <p class="item__descr">{{ post['content']|truncate(50) }}</p>
+        <p class="item__descr">{{ post['content']|safe|truncate(50) }}</p>
         <div class="item__post-info">
           <div class="item__counter">
             <img src="{{ url_for('static', path='img/eye.png') }}" alt="" class="item__counter-icon" width="26">
             <span class="item__counter-text">{{ post['views_count']      }}      </span>
-            <img src="{{ url_for('static', path='img/heart2.png') }}" alt="" class="item__bookmark-icon" width="26">
+            <img src="{{ url_for('static', path='img/heart2.png') }}" alt="" class="item__bookmark-icon" width="40">
             <span class="item__counter-text">{{ post['likes_count'] }}</span>
           </div>
         </div>
         <div class="item__post-bottom">
-          <a href="/post.html" class="item__btn-more">Подробнее</a>
+          <a href="{{ url_for('page_post_by_id', post_id=post['pk']) }}" class="item__btn-more">Подробнее</a>
           <button type="button" class="item__bookmark-btn">
             <img src="{{ url_for('static', path='img/bookmark.png') }}" alt="" class="item__bookmark-icon" width="24">
           </button>
