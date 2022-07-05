@@ -12,7 +12,6 @@ class Repository:
         self.bookmarks_file = os.path.join(DATA_PATH_ABS, 'bookmarks.json')
         self.comments_file = os.path.join(DATA_PATH_ABS, 'comments.json')
 
-
     # posts
 
     def get_all_posts(self):
@@ -43,6 +42,22 @@ class Repository:
                 founded_posts.append(post)
         return founded_posts
 
+    def get_post_by_tag(self, tag_name: str):
+        searched_tag = f"#{tag_name.strip().lower()}"
+        all_posts = self.get_all_posts()
+
+        founded_posts = []
+        for post in all_posts:
+            hashtags_list = post['hashtags']
+            if len(hashtags_list) == 0: continue
+
+            for hashtag in hashtags_list:
+                if searched_tag == hashtag.strip().lower():
+                    founded_posts.append(post)
+                    break
+
+        return founded_posts
+
     def parse_post_hashtags(self, all_posts: list[dict]):
         """Получает контент поста и обворачивает хештеги ссылкой, если такой процедуры с постом не производилось ранее"""
         # Эта функция создана исключительно в этой работе, ибо гораздо проще всё это проделывать в функции добавления постов,
@@ -58,7 +73,7 @@ class Repository:
             # Дальнейший код уже потребует сохранение изменений в базе постов, поэтому...
             is_resave_needed = True
 
-            #если нет хештегов - добавляем ключ с пустым списком
+            # если нет хештегов - добавляем ключ с пустым списком
             if post['content'].count('#') == 0:
                 post['hashtags'] = []
                 continue
@@ -70,7 +85,7 @@ class Repository:
             # каждый хештег в тексте заменяется на ссылку
             for hashtag in hashtags:
                 post['content'] = post['content'].replace(hashtag, f"<a href='/tag/{hashtag[1:].strip()}'>{hashtag.strip()}</a> ", 1)
-            #удаляем пробелы с концов хештегов для феншуя
+            # удаляем пробелы с концов хештегов для феншуя
             hashtags = list(map(lambda x: x.strip(), hashtags))
             # записываем хештеги в ключ,
             post['hashtags'] = hashtags
@@ -102,9 +117,6 @@ class Repository:
 
         return founded_comments
 
-
-
-
     def add_like(self, post_id):
         ...
 
@@ -122,6 +134,7 @@ class Repository:
 
 class UserIDentifier:
     """Класс для генерации, записи, и получения уникального id пользователя"""
+
     # Как уникальный идентификатор я придумал привязаться к браузеру клиенту, в догонку добавить сумму регистров ip
     # По идее - эти данные постоянные, в то же время с разных браузеров получится "разные клиенты"
     # В общем выглядит вполне уникальным и постоянным ориентиром
@@ -149,4 +162,3 @@ class UserIDentifier:
             print(f"User ID: {user_id} is found")
 
         return user_id
-

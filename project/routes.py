@@ -54,6 +54,22 @@ def page_posts_by_user(request: Request, user_name: str):
     }
     return templates.TemplateResponse("user-feed.html", data_for_template)
 
+@main_router.get("/tag/{tag_name}")
+def page_posts_by_tag(request: Request, tag_name: str):
+    posts_by_tag = Repository().get_post_by_tag(tag_name)
+
+    data_for_template = {
+        "request": request,
+        "tag":  tag_name,
+        'posts': posts_by_tag
+    }
+    return templates.TemplateResponse("tag.html", data_for_template)
+
+
+
+
+
+
 
 @main_router.get("/api/posts")
 def page_index_all_json(request: Request):
