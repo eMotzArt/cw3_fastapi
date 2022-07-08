@@ -24,12 +24,17 @@
     </div>
   </header>
   <main class="container">
+
     <div class="search">
       <form action="{{ url_for('page_search') }}" class="search__form">
-        <input type="search" class="search__input" name="search_line">
+       <div class="row">
+        <input type="search" name="search_line" id="login" required>
+        <label for="login">Поиск</label>
+       </div>
       </form>
       <p class="search__results">Найдено постов: {{ posts|length }}</p>
     </div>
+
     <section class="items">
       {% for post in posts %}
       <div class="items__item item">

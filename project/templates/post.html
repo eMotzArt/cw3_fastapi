@@ -62,6 +62,23 @@
             </p>
             {% endfor %}
           </div>
+          <p class="item__comment">
+              Добавить комментарий:
+          </p>
+          <div>
+            <form name="leave_comment" action="{{ url_for('page_test', post_id=post['pk']) }}" method="get" post_id="{{ post['pk']}} enctype=multipart/form-data">
+
+                <div class="row">
+                <input type="text" name="comment_content" id="add_comment" required>
+                <label for="add_comment">Введите комментарий</label>
+                </div>
+
+                <input class="in_submit" type="submit" value="Разместить комментарий">
+
+            </form>
+          </div>
+
+
         </div>
       </div>
     </section>

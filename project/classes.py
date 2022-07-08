@@ -2,8 +2,10 @@ import os
 import json
 import hashlib
 import re
+import shutil
+import operator
 
-from project.paths import DATA_PATH_ABS
+from project.paths import DATA_PATH_ABS, IMG_PATH_ABS
 
 
 class Repository:
@@ -83,12 +85,16 @@ class Repository:
             # вычисляются все хештеги в список (после каждого хештега присутствует пробел, это важно, не спрашивайте зачем)
             hashtags = re.findall(r'(#\w+ )', post['content'])
             # каждый хештег в тексте заменяется на ссылку
+
+            hashtags_links = []
             for hashtag in hashtags:
+                hashtags_links.append(f"<a href='/tag/{hashtag[1:].strip()}'>{hashtag.strip()}</a>")
                 post['content'] = post['content'].replace(hashtag, f"<a href='/tag/{hashtag[1:].strip()}'>{hashtag.strip()}</a> ", 1)
             # удаляем пробелы с концов хештегов для феншуя
             hashtags = list(map(lambda x: x.strip(), hashtags))
-            # записываем хештеги в ключ,
+            # записываем хештеги и ссылки в ключи,
             post['hashtags'] = hashtags
+            post['hashtags_links'] = hashtags_links
 
         # если были какие-нибудь изменения в базе - перезаписываем базу постов
         if is_resave_needed:
@@ -101,6 +107,23 @@ class Repository:
             json.dump(all_posts, posts_file, ensure_ascii=False, indent=4)
 
     # comments
+    def add_comment(self, post_id, commenter_name, comment):
+
+        all_comments: list[dict] = self.get_all_comments()
+        pk = len(all_comments)+1
+        new_comment = {
+                          "post_id": post_id,
+                          "commenter_name": commenter_name,
+                          "comment": comment,
+                          "pk": pk
+                      }
+        all_comments.append(new_comment)
+        all_comments.sort(key=operator.itemgetter('post_id'))
+
+        with open(self.comments_file, 'w', encoding='utf-8') as comments_file:
+            json.dump(all_comments, comments_file, ensure_ascii=False, indent=4)
+
+
 
     def get_all_comments(self):
         with open(self.comments_file) as comments_file:
@@ -117,15 +140,6 @@ class Repository:
 
         return founded_comments
 
-    def add_like(self, post_id):
-        ...
-
-    def add_view(self, post_id):
-        ...
-
-    def add_comment(self, post_id, name, comment):
-        ...
-
     def get_bookmarsk_count(self):
         with open(self.bookmarks_file) as file:
             all_bookmarks = json.load(file)
@@ -139,26 +153,59 @@ class UserIDentifier:
     # По идее - эти данные постоянные, в то же время с разных браузеров получится "разные клиенты"
     # В общем выглядит вполне уникальным и постоянным ориентиром
 
+    def __init__(self):
+        self.users_data_file = DATA_PATH_ABS.joinpath('users.json')
+
+    def is_user_registered(self, request):
+        user_id = self.generate_user_id(request)
+        all_users = self.get_all_registered_users()
+        if user_id in all_users:
+            return True
+        return False
+
+    def get_user_name(self, request):
+        user_id = self.generate_user_id(request)
+        all_users: dict = self.get_all_registered_users()
+        user_name = all_users.get(user_id)
+        return user_name
+
+    def save_new_user_avatar(self, user_id, reg_avatar):
+        file_extension = reg_avatar.filename.split('.')[-1]
+        file_full_path = IMG_PATH_ABS.joinpath(f"{user_id}.{file_extension}")
+        with open(file_full_path, "wb") as save_file:
+            shutil.copyfileobj(reg_avatar.file, save_file)
+        pass
+
+    def get_all_registered_users(self):
+        with open(self.users_data_file) as users_data:
+            data = json.load(users_data)
+        return data
+
+    def save_new_user_id(self, user_id, user_name):
+        data_to_export = {user_id: user_name}
+        all_users: dict = self.get_all_registered_users()
+        all_users.update(data_to_export)
+
+        with open(self.users_data_file, 'w') as users_file:
+            json.dump(all_users, users_file, ensure_ascii=False, indent=4)
+
+
+    def register_new_user(self, request, response, reg_name, reg_avatar):
+        #получили хеш
+        new_user_id = self.generate_user_id(request)
+        #сохранили файл с именем файла = хеш пользователя
+        self.save_new_user_avatar(new_user_id, reg_avatar)
+        #сохранили информацию о зарегистрированном пользователе
+        self.save_new_user_id(new_user_id, reg_name)
+        print(f"New User ID generated: {new_user_id}")
+
     def generate_user_id(self, request):
         user_browser_agent = request.headers.get('user-agent')
         user_ip_adress_str = request.get('client')[0]
         user_ip_adress_map_int = map(lambda register: int(register), user_ip_adress_str.split('.'))
         user_ip_adress_sum = str(sum(user_ip_adress_map_int))
         user_unique_str = f"{user_browser_agent}__{user_ip_adress_sum}"
-        unique_id = (hashlib.md5(user_unique_str.encode('utf-8')).hexdigest())
+        unique_id = hashlib.md5(user_unique_str.encode('utf-8')).hexdigest()
         return unique_id
 
-    def record_uid_to_user_cookies(self, new_user_id, response):
-        response.set_cookie(key="sky-uid", value=new_user_id)
 
-    def initiate_user(self, request, response):
-        """Инициализация. Проверяет есть ли в куках пользователя IDшник, если нет генерирует и записывает"""
-
-        if (user_id := request.cookies.get('sky-uid')) is None:
-            new_user_id = self.generate_user_id(request)
-            self.record_uid_to_user_cookies(new_user_id, response)
-            print(f"New User ID generated: {new_user_id}")
-        else:
-            print(f"User ID: {user_id} is found")
-
-        return user_id
