@@ -24,6 +24,12 @@
         "pk": 4
     },
     {
+        "post_id": 1,
+        "commenter_name": "John",
+        "comment": null,
+        "pk": 21
+    },
+    {
         "post_id": 2,
         "commenter_name": "johnny",
         "comment": "Класс!",

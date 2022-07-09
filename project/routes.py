@@ -1,9 +1,11 @@
 # system import
 
-from fastapi import APIRouter, Response, Request, Form, File, UploadFile, Query
+from fastapi import APIRouter, Response, Request, Form, File, UploadFile, Query, Body
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse
 # my import
+from pydantic import BaseModel
+
 from project.paths import TEMPLATES_PATH_ABS
 from project.classes import UserIDentifier, Repository
 
@@ -14,10 +16,10 @@ templates = Jinja2Templates(directory=TEMPLATES_PATH_ABS)
 @main_router.get("/")
 def page_index(request: Request):
     if not UserIDentifier().is_user_registered(request):
-        return RedirectResponse('/reg', status_code=302)
+        return RedirectResponse(url=main_router.url_path_for('page_reg'), status_code=302)
 
     all_posts = Repository().get_all_posts()
-    bookmarks_count = Repository().get_bookmarsk_count()
+    bookmarks_count = Repository().get_bookmarsk_count(UserIDentifier().generate_user_id(request))
 
     data_for_template = {
         'request': request,
@@ -37,8 +39,7 @@ def page_reg_post(request: Request, response: Response, reg_name: str = Form(...
 
     UserIDentifier().register_new_user(request, response, reg_name, reg_avatar)
 
-    return RedirectResponse("/", status_code=302)
-
+    return RedirectResponse(url=main_router.url_path_for('page_index'), status_code=302)
 
 
 #post_routes
@@ -93,7 +94,9 @@ def page_test(request: Request, post_id: int):
     user_name = UserIDentifier().get_user_name(request)
     Repository().add_comment(post_id,user_name,comment_content)
 
-    return RedirectResponse(f'/post/{post_id}', status_code=302)
+    return RedirectResponse(url=main_router.url_path_for('page_post_by_id', post_id=post_id), status_code=302)
+
+
 
 #api_posts
 @main_router.get("/api/posts")
@@ -108,23 +111,11 @@ def page_index_all_json(post_id: int):
 
 
 
+from pydantic import BaseModel
+class Data(BaseModel):
+    name: str
 
-
-
-
-
-
-
-
-
-
-
-
-
-@main_router.get("/cookie-and-object/")
-@main_router.post("/cookie-and-object/")
-def create_cookie(response: Response, request: Request):
-    result = UserIDentifier().initiate_user(request, response)
-
-    return {"message": "Come to the dark side, we have cookies",
-            "younewid": request.cookies.get('sky-uid')}
+@main_router.get("/{post_id}/getlike")
+def getlike(request: Request, post_id:int):
+    x=2
+    ...

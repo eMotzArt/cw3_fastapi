@@ -140,10 +140,15 @@ class Repository:
 
         return founded_comments
 
-    def get_bookmarsk_count(self):
+    def get_bookmarsk_count(self, user_id):
         with open(self.bookmarks_file) as file:
             all_bookmarks = json.load(file)
-        return len(all_bookmarks)
+
+        user_bookmarks = all_bookmarks.get(user_id)
+        if user_bookmarks is None:
+            return 0
+
+        return len(user_bookmarks)
 
 
 class UserIDentifier:
